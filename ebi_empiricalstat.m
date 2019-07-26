@@ -25,7 +25,7 @@ function O=ebi_empiricalstat(x,X0,X1,varargin)
 % O=ebi_empricalstat([2 3 4],randn(1,2000),2+randn(1,2000))
 %
 % Written by:
-% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 2016, nasseroleslami@gmail.com
+% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 2016, nasserob@tcd.ie, bahman@neuromotor.org
 % Revision: 4/8/2017.
 % To Do: Add empirical FDR
 % Part of the Emprical Bayesian Inference (EBI) toolbox for MATLAB
@@ -93,7 +93,7 @@ O.Power=1-Beta;
 O.P=P;
 O.ThresholdMatrix=ThresholdMatrix;
 
-% Copyright (c) 2018 Bahman Nasseroleslami, All rights reserved.
+% Copyright (c) 2018-2019 Bahman Nasseroleslami, All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 % 

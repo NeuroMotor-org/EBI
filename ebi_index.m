@@ -5,12 +5,18 @@
 % ebi_report.m  ,        Post-processing file for EBI
 % ebi_threshold.m  ,     Re-do the threshold estimation for an existing EBI results set 
 % ebi_uv.m ,             Processing file for emprical bootstrapping-based inference (ebi), (uni-variate)
-% ebi_empricalstat.m ,   Emprical statitics numerical discrete exact calculation of alpha, beta and
-%                          q from existing null and non-null distribution data
+% ebi_empricalstat.m ,   Emprical statitics; numerical discrete exact calculation of alpha, beta and q from existing null and non-null distribution data
 % ebi_verification.m  ,  Re-do the threshold estimation for an existing EBI results set 
-% license.text ,         License File 
+% license.txt ,          License File 
 
-% Copyright (c) 2018 Bahman Nasseroleslami, All rights reserved.
+% Written by:
+% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 26/7/2019, nasserob@tcd.ie, bahman@neuromotor.org
+
+% Accompanying Manuscript:
+% Nasseroleslami B. 2018. An Implementation of Empirical Bayesian Inference and Non-Null Bootstrapping for Threshold Selection and Power Estimation in Multiple and Single Statistical Testing. bioRxiv.:342964. doi:10.1101/342964.
+
+
+% Copyright (c) 2018-2019 Bahman Nasseroleslami, All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 % 

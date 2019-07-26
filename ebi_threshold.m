@@ -19,7 +19,7 @@ function O=ebi_threshold(I,Thresholds)
 % O = ebi_threshold(I, [0.8 0.1 0.25 0.01]);
 %
 % Written by:
-% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 11/09/2017, nasseroleslami@gmail.com
+% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 11/09/2017, nasserob@tcd.ie, bahman@neuromotor.org
 % Part of the Emprical Bayesian Inference (EBI) toolbox for MATLAB
 
 O=I;
@@ -76,7 +76,7 @@ O.ThresholdMatrix=ThresholdMatrix;
 O.H=H;
 end
 
-% Copyright (c) 2018 Bahman Nasseroleslami, All rights reserved.
+% Copyright (c) 2018-2019 Bahman Nasseroleslami, All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 % 

@@ -24,7 +24,7 @@ function []=ebi_report(O,varargin)
 % O=ebi([randn(50,200);randn(50,100),randn(50,100)+1.5],[zeros(50,1);ones(50,1)]); ebi_report(O);
 %
 % Written by:
-% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 27/05/2016, nasseroleslami@gmail.com
+% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 27/05/2016, nasserob@tcd.ie, bahman@neuromotor.org
 % Revision: 4/8/2017.
 % Part of the Emprical Bayesian Inference (EBI) toolbox for MATLAB
 
@@ -108,7 +108,6 @@ title('Posterior Probabilities','FontSize', MyTitleFontSize,'FontWeight','bold')
 
 % Global alpha/Beta
 subplot(plotM,plotN,4);
-thisymax=max([O.EstimatedPriors(2) O.GlobalAlpha O.GlobalBeta]);
 bar([1 2 3],[O.EstimatedPriors(2) O.GlobalAlpha O.GlobalBeta],0.35,'FaceColor', [0 0 0]);
 hold on;
 plot([0 4],[1 1],'Color','k','LineWidth',0.5,'LineStyle','--')
@@ -138,9 +137,9 @@ ylim([0 thisymax])
 xlabel('P_{1,crit}','FontSize',MyFontSize,'FontWeight','bold')
 title('EBI','FontSize',MyTitleFontSize,'FontWeight','bold');
 if O.ThresholdMatrix(EBIcrit,1)>0.5
-    set(gca,'FontSize',MyFontSize,'YTick',[0 thisymax],'Xlim',[0.5 1],'XTick',[0.5 O.ThresholdMatrix(EBIcrit,1) 1],'XTickLabel',{' ',[num2str(O.ThresholdMatrix(EBIcrit,1),2)],'1'},'YTickLabel',{'0',num2str(thisymax,2)})
+    set(gca,'FontSize',MyFontSize,'YTick',[0 thisymax],'Xlim',[0.5 1],'XTick',[0.5 O.ThresholdMatrix(EBIcrit,1) 1],'XTickLabel',{' ',[num2str(O.ThresholdMatrix(EBIcrit,1),2)],'1'},'YTickLabel',{'0',num2str(thisymax,2)}) %#ok<NBRAK>
 else
-    set(gca,'FontSize',MyFontSize,'YTick',[0 thisymax],'Xlim',[O.ThresholdMatrix(EBIcrit,1)-0.01 1],'XTick',[O.ThresholdMatrix(EBIcrit,1) 0.5 1],'XTickLabel',{[num2str(O.ThresholdMatrix(EBIcrit,1),2)],' ','1'},'YTickLabel',{'0',num2str(thisymax,2)})
+    set(gca,'FontSize',MyFontSize,'YTick',[0 thisymax],'Xlim',[O.ThresholdMatrix(EBIcrit,1)-0.01 1],'XTick',[O.ThresholdMatrix(EBIcrit,1) 0.5 1],'XTickLabel',{[num2str(O.ThresholdMatrix(EBIcrit,1),2)],' ','1'},'YTickLabel',{'0',num2str(thisymax,2)}) %#ok<NBRAK>
 end
 legend([ball1ah ball2ah ball3ah],{['FDR = ' num2str(O.ThresholdMatrix(EBIcrit,2),'%.2f')],['\beta = ' num2str(O.ThresholdMatrix(EBIcrit,3),'%.2f')],['p_1 = ' num2str(O.ThresholdMatrix(EBIcrit,EBIcrit),'%.2f')]},'Location','best')
 text(-0.07,0.5,0,'FDR','HorizontalAlignment','center','FontWeight','bold','FontSize',MyFontSize, 'Color', [0.5 0 0],'Rotation',90,'Units','normalized');
@@ -187,7 +186,7 @@ plot([O.ThresholdMatrix(3,1),0],[1 1].*O.ThresholdMatrix(3,2),'Color', CritColor
 plot(O.ThresholdMatrix(3,1)*[1 1],[0 O.ThresholdMatrix(3,3)],'Color', CritColor,'LineWidth',CritLineWidth); % prior p1 line
 plot([O.ThresholdMatrix(3,1),1],[1 1].*O.ThresholdMatrix(3,3),'Color', CritColor,'LineWidth',ReflLineWidth); % prior p1 - to Beta
 
-% @Beta
+% @P1
 CritColor=[0 0.5 1];
 crithandle(4)=plot(O.ThresholdMatrix(1,1)*[1 1],[0 O.ThresholdMatrix(1,2)],'Color', CritColor,'LineWidth',CritLineWidth); % prior p1 line
 plot([O.ThresholdMatrix(1,1),0],[1 1].*O.ThresholdMatrix(1,2),'Color', CritColor,'LineWidth',ReflLineWidth); % prior p1 - to FDR
@@ -210,7 +209,7 @@ disp([tifffilename ' was generated.'])
 close(fh1);
 end
 
-% Copyright (c) 2018 Bahman Nasseroleslami, All rights reserved.
+% Copyright (c) 2018-2019 Bahman Nasseroleslami, All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 % 

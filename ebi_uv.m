@@ -43,7 +43,7 @@ function [O]=ebi_uv(p_X,p_g,varargin)
 % O=ebi_uv([randn(50,1);randn(50,1)+1.5],[zeros(50,1);ones(50,1)],'Thresholds',[0.005 0.05],'Nboot0',10000,'Nboot1',10000);
 %
 % Written by:
-% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 27/05/2016, nasseroleslami@gmail.com
+% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 27/05/2016, nasserob@tcd.ie, bahman@neuromotor.org
 % Part of the Emprical Bayesian Inference (EBI) toolbox for MATLAB
 
 p = inputParser;
@@ -65,7 +65,7 @@ rng('shuffle');
 Ngroups=[sum(g==0) sum(g>0)];
 Prec=1e-3;
 KernelSupport=[-20 20];
-epsilon=4.55e-5;
+epsilon=2.061e-9;
 Zlist=KernelSupport(1):Prec:KernelSupport(2);
 
 % Take AUC as Zi variable
@@ -166,7 +166,7 @@ O.Model0=Model0;
 O.Model1=Model1;
 end
 function Y=A2Z(X,epsilon)
-Y=log(epsilon+X)-log(epsilon+1-X);
+Y=0.5*(log(epsilon+X)-log(epsilon+1-X));
 Yb=abs(Y)>9;
 %Y=Y.*~Yb+(9.*sign(Y)+min(max(0.25.*randn(size(Y)),-0.5),0.5)).*Yb;
 for nni=1:size(Y,1)
@@ -174,7 +174,7 @@ for nni=1:size(Y,1)
 end
 end
 function Y=Z2A(X,epsilon)
-Y=((epsilon+1).*(1+exp(X)-(2*epsilon+1)))./(1+exp(X));
+Y=((epsilon+1).*(1+exp(2*X)-(2*epsilon+1)))./(1+exp(2*X));
 end
 function [Model]=bgmdfit(W)
 Nmodels=(floor(length(W)/3)-1);
@@ -207,8 +207,28 @@ d1=normcdf(-4);
 d2=normcdf(4);
 X = norminv(d1+((d2-d1)/(2*N)).*(1:2:(2*N)),0,0.25);
 end
+function [A,varargout]=bAUROC(g,X)
+% Calculated the Area Under the Receiver Operating Curve (AUROC) and it's variance using De Long's Method (Zhou 2009, Statistical Methods in Diagnostic Medicine)
+% [A [, VA]]=bAUROC(g,X)
+% g: column vector N x 1, labels 0 or 1 for group 0 and group 1,
+% X: column vector N x 1, Data
 
-% Copyright (c) 2018 Bahman Nasseroleslami, All rights reserved.
+% A: Area under the curve
+% VA: Estimated Variance
+n0=sum(g==0);
+n1=sum(g==1);
+T1=repmat(X(g==1),1,n0);
+T0=repmat(X(g==0).',n1,1);
+Phi=(T1>T0)+0.5.*(T1==T0);
+V10=mean(Phi,2);
+V01=mean(Phi,1);
+A=mean(V10,1);
+if nargout>1
+    varargout{1}=(var(V10,0,1)/n1)+(var(V01,0,2)/n0);
+end
+end
+
+% Copyright (c) 2018-2019 Bahman Nasseroleslami, All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 % 

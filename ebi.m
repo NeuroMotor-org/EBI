@@ -15,6 +15,7 @@ function [O]=ebi(p_X,p_g,varargin)
 %                                'T': independent sample t, as test statistic
 %                                'R': Spearman's rank correlation, transformed to Z-scores,
 %                                'WZ': Wilcoxon's (paired) Sign-Rank W-statitic, transformed to Z
+%                                'CohZ': Classic Spectral Coherence (Sxy^2/(Sxx.Syy)), the p-value transformed to Z space.
 %                     Estimator: 'GMD': (default, recommended) Gaussian
 %                                        Mixture Distribution (GMD)-based estimation of
 %                                        probability density functions (PDFs), using Akaike
@@ -50,25 +51,29 @@ function [O]=ebi(p_X,p_g,varargin)
 % O = ebi([randn(50,200);randn(50,100),randn(50,100)+1.5],[zeros(50,1);ones(50,1)]);
 %
 % Written by:
-% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 27/05/2016, nasseroleslami@gmail.com
+% Bahman Nasseroleslami, Trinity College Dublin, the University of Dublin, 27/05/2016, nasserob@tcd.ie, bahman@neuromotor.org
 % based on (Efron, Tibshirani, Storey, Tusher, 2001, Journal of American Statistical Association) and (Efron 2007, The Annals of Statistics).
 % Part of the Emprical Bayesian Inference (EBI) toolbox for MATLAB
-
+% Revision: 13/6/2018. Fixed a bug in T-Test option. Added support for
+% coherence analysis on raw complex-valued data
 
 % Parse the inputs, specify the defaults, and assert correct formats
 p = inputParser;
 addRequired(p,'p_X',@(X) isnumeric(X) && all(isfinite(X(:))) && all(size(X)>1));
 addRequired(p,'p_g',@(X) all(isfinite(X(:))) && size(X,1)>1 && size(X,2)==1 && all((X==0) | (X==1)) && sum(X==0)>0 && sum(X==1)>0);
 addParameter(p,'Thresholds',[0.9 0.05 0.2 0.05],@(X) isnumeric(X) && all(isfinite(X(:))) && all(size(X)==[1 4]) && all((X>0) & (X<1))); % [P1Z, FDR, Beta, Alpha]
-addParameter(p,'Test','AUCZ',@(X) ischar(X) && ismember(X,{'AUC','AUCZ','T','R','WZ'}));
+addParameter(p,'Test','AUCZ',@(X) ischar(X) && ismember(X,{'AUC','AUCZ','T','R','WZ','CohZ'}));
 addParameter(p,'Estimator','GMD',@(X) ischar(X) && ismember(X,{'GMD','Kernel'}));
 addParameter(p,'pct',[0.5 0.5],@(X) isnumeric(X) && all(isfinite(X)) && all(size(X)==[1 2]) && all((X>0) & (X<1)) && X(2)>=X(1));
+% addParameter(p,'SigmaW2',1,@(X) isnumeric(X) && all(isfinite(X)) &&
+% size(X,1)==1 && all(X>0) && all(X<1)); % reserved for advanced coherence anlysis
 parse(p,p_X,p_g,varargin{:});
 X=p.Results.p_X;
 g=p.Results.p_g;
 Thresholds=p.Results.Thresholds;
 Test=p.Results.Test;
 pct=p.Results.pct;
+% SigmaW2=p.Results.SigmaW2; % reserved for advanced coherence analysis 
 assert(size(X,1)==size(g,1),'X and g must have the same number of rows.')
 assert( (~strcmp(Test,'R')) || (strcmp(Test,'R') && (mod(length(g),2)==0) && all(g(1:(length(g)/2))==0) && all(g((1:(length(g)/2))+(length(g)/2))==1)),'For Correlation, the first half of g must be 0s and second half of it must be 1s, in the corresponding order.')
 assert( (~strcmp(Test,'WZ')) || (strcmp(Test,'WZ') && (mod(length(g),2)==0) && all(g(1:(length(g)/2))==0) && all(g((1:(length(g)/2))+(length(g)/2))==1)),'For pair-wise comparison using Wilcoxon''s Signed Rank, the first half of g must be 0s and second half of it must be 1s, in the corresponding order.')
@@ -80,7 +85,7 @@ rng('shuffle'); % Initialise random number generation
 Prec=1e-3; % Increment/Precision
 KernelSupport=[-10 10]; % The range for test statitic
 Zlist=-20:Prec:20; % the range for PDF and integration
-epsilon=4.55e-5; % The epsilon value for modification of the Fisher-Type Transform so that the 0:1 or -1:1rnage is mapped to the -10:10 rather than infinity
+epsilon=2.061e-9; % The epsilon value for modification of the Fisher-Type Transform so that the 0:1 or -1:1rnage is mapped to the -10:10 rather than infinity. 4.55e-5;
 
 Ngroups=[sum(g==0) sum(g>0)]; % Number of observations in the group A (control) and group B (patients)
 
@@ -104,6 +109,15 @@ switch Test
         AUC=zeros(1,Nvar); % Initialise as neutral values
         for vi=1:Nvar,     AUC(1,vi)  = 0.5+0.5*corr(X(g==0,vi),X(g>0,vi),'type','Spearman','rows','pairwise'); end
         AUCZ=A2Z(AUC,epsilon);
+    case 'CohZ' % under development 
+        % use algebraic approximation
+        % % C2=(abs(mean(X(g==0,:).*conj(X(g>0,:)),1)).^2)./(mean(abs(X(g==0,:)).^2,1).*mean(abs(X(g>0,:)).^2));
+        % % TempP=(1-C2).^(((Nobs/2)-1).*SigmaW2); 
+        % % use Hotelling's one-sample T^2
+        %TempP=ones(1,Nvar);
+        %for vi=1:Nvar, TempP(1,vi)=bhotellingT(complex(X(g==0,vi).*conj(X(g>0,vi)))); end
+        %AUC=norminv(1-TempP); % norminv(2*max(1-(TempP),TempP)); 
+        %AUCZ=SmashT(AUC);
 end
 
 ModelMixed=bgmdfit(AUCZ(:)); % fit GMD model to mixed data f(z)
@@ -149,6 +163,17 @@ switch Test
             end
         end
         AUC0b=A2Z(AUC0b,epsilon);
+        %     case 'CohZ'
+        %         for bi=1:Nboot0
+        %             g0=randi(Ngroups(1),Ngroups(1),1);
+        %             g1=randi(Ngroups(1),Ngroups(1),1)+Ngroups(1);
+        %             %C2=(abs(mean(X(g0,:).*conj(X(g1,:)),1)).^2)./(mean(abs(X(g0,:)).^2,1).*mean(abs(X(g1,:)).^2));
+        %             %TempP=(1-C2).^(((Nobs/2)-1).*SigmaW2);
+        %             TempP=ones(1,Nvar);
+        %             for vi=1:Nvar, TempP(1,vi)=bhotellingT(complex(X(g0,vi).*conj(X(g1,vi)))); end
+        %             AUC0b(bi,:)=norminv(1-TempP);
+        %         end
+        %         AUC0b=SmashT(AUC0b);
 end
 
 % Sparse Null Data to avoid unnecessaru computation and increase the speed
@@ -272,20 +297,18 @@ O.Nvar=Nvar;
 O.Ngroups=Ngroups;
 end
 function Y=A2Z(X,epsilon)
-Y=log(epsilon+X)-log(epsilon+1-X);
+Y=0.5*(log(epsilon+X)-log(epsilon+1-X));
 Yb=abs(Y)>9;
-%Y=Y.*~Yb+(9.*sign(Y)+min(max(0.25.*randn(size(Y)),-0.5),0.5)).*Yb;
 for nni=1:size(Y,1)
     Y(nni,Yb(nni,:))=9.*sign(Y(nni,Yb(nni,:)))+METNs(sum(Yb(nni,:),2));
 end
 end
 % Truncate the t-statistics between -9 and 9
 function Y=SmashT(X)
-X(X==-Inf)=-9;
-X(X==Inf)=9;
+X(X==-Inf)=-10;
+X(X==Inf)=10;
 Yb=abs(X)>9;
-% Y=X.*~Yb+(9.*sign(X)+min(max(0.25.*randn(size(X)),-0.5),0.5)).*Yb; % old random version
-Y=zeros(size(X));
+Y=X;
 for nni=1:size(X,1)
     Y(nni,Yb(nni,:))=9.*sign(X(nni,Yb(nni,:)))+METNs(sum(Yb(nni,:),2));
 end
@@ -366,7 +389,7 @@ function y=bnth(x,n)
 y=x(n);
 end
 
-% Copyright (c) 2018 Bahman Nasseroleslami, All rights reserved.
+% Copyright (c) 2018-2019 Bahman Nasseroleslami, All rights reserved.
 % 
 % Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 % 
